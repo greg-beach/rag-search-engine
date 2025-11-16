@@ -11,3 +11,6 @@ wheels/
 
 # Ignored directories
 data/
+cache/
+
+uv.lock
