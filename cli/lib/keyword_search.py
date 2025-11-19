@@ -47,10 +47,12 @@ class InvertedIndex:
         if len(tokens) != 1:
             raise ValueError("term must be a single token")
         token = tokens[0]
-
         doc_count = len(self.docmap)
         term_doc_count = len(self.index[token])
         return math.log((doc_count + 1) / (term_doc_count + 1))
+    
+    def get_tf_idf(self, doc_id: int, term: str) -> float:
+        return self.get_tf(doc_id, term) * self.get_idf(term)
     
     def save(self) -> None:
         os.makedirs(CACHE_DIR, exist_ok=True)
@@ -110,6 +112,11 @@ def idf_command(term: str) -> float:
     idx = InvertedIndex()
     idx.load()
     return idx.get_idf(term)
+
+def tf_idf_command(doc_id: int, term: str) -> float:
+    idx = InvertedIndex()
+    idx.load()
+    return idx.get_tf_idf(doc_id, term)
 
 def process_text(text: str) -> str:
     text = text.lower()
