@@ -7,8 +7,11 @@ from lib.semantic_search import (
     embed_text, 
     verify_embeddings,
     embed_query_text,
-    semantic_search
+    semantic_search,
+    chunk_text
 )
+
+from lib.search_utils import DEFAULT_CHUNK_SIZE
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -28,6 +31,11 @@ def main():
     search_parser.add_argument("query", type=str, help="Search query")
     search_parser.add_argument("--limit", type=int, default=5, help="Number of results to return")
 
+    chunk_parser = subparsers.add_parser("chunk", help="Break a query into smaller chunks")
+    chunk_parser.add_argument("text", type=str, help="Text to chunk")
+    chunk_parser.add_argument("--chunk-size", type=int, default=DEFAULT_CHUNK_SIZE, help="Size of each chunk in words")
+    chunk_parser.add_argument("--overlap", type=float, help="Percentage of word overlap for the chunk")
+
     args = parser.parse_args()
 
     match args.command:
@@ -44,6 +52,8 @@ def main():
             embed_query_text(args.query)
         case "search":
             semantic_search(args.query, args.limit)
+        case "chunk":
+            chunk_text(args.text, args.chunk_size)
         case _:
             parser.print_help()
 
