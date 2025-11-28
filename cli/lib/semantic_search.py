@@ -1,7 +1,8 @@
 import os
 import numpy as np
+import re
 
-from .search_utils import CACHE_DIR, load_movies, DEFAULT_SEARCH_LIMIT, DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP
+from .search_utils import CACHE_DIR, load_movies, DEFAULT_SEARCH_LIMIT, DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP, DEFAULT_SEMANTIC_CHUNK_SIZE
 from sentence_transformers import SentenceTransformer
 
 MOVIE_EMBEDDINGS_PATH = os.path.join(CACHE_DIR, "movie_embeddings.npy")
@@ -126,8 +127,8 @@ def fixed_size_chunking(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap
     words = text.split()
     chunks = []
 
-    if chunk_size == overlap:
-        raise ValueError("Size of chunk cannot be the same size as overlap")
+    if chunk_size <= overlap:
+        raise ValueError("Size of chunk to be greater than the overlap")
     
     if overlap < 0: 
         overlap = 0
@@ -137,6 +138,8 @@ def fixed_size_chunking(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap
     while i < n_words:
         chunk_words = words[i : i + chunk_size]
         chunks.append(" ".join(chunk_words))
+        if i + chunk_size >= n_words:
+            break
         i += chunk_size - overlap
     
     return chunks
@@ -144,5 +147,33 @@ def fixed_size_chunking(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap
 def chunk_text(text: str, chunk_size: int = DEFAULT_CHUNK_SIZE, overlap: int = DEFAULT_CHUNK_OVERLAP) -> None:
     chunks = fixed_size_chunking(text, chunk_size, overlap)
     print(f"Chunking {len(text)} characters")
+    for i, chunk in enumerate(chunks, 1):
+        print(f"{i}. {chunk}")
+
+def semantic_chunking(text: str, max_chunk_size: int = DEFAULT_SEMANTIC_CHUNK_SIZE, overlap: int = DEFAULT_CHUNK_OVERLAP) -> list[str]:
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    chunks = []
+
+    if max_chunk_size <= overlap:
+        raise ValueError("Size of chunk to be greater than the overlap")
+    
+    if overlap < 0:
+        overlap = 0
+
+    n_sentences = len(sentences)
+    i = 0
+    while i < n_sentences:
+        chunk_sentences = sentences[i : i + max_chunk_size]
+        chunks.append(" ".join(chunk_sentences))
+
+        if i + max_chunk_size >= n_sentences:
+            break
+        i += max_chunk_size - overlap
+    return chunks
+
+
+def semantic_chunk_text(text: str, max_chunk_size: int = DEFAULT_SEMANTIC_CHUNK_SIZE, overlap: int = DEFAULT_CHUNK_OVERLAP) -> None:
+    chunks = semantic_chunking(text, max_chunk_size, overlap)
+    print(f"Semantically chunking {len(text)} characters")
     for i, chunk in enumerate(chunks, 1):
         print(f"{i}. {chunk}")
