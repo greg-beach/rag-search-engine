@@ -10,10 +10,11 @@ from lib.semantic_search import (
     semantic_search,
     chunk_text,
     semantic_chunk_text,
-    embed_chunks_command
+    embed_chunks_command,
+    search_chunked_command
 )
 
-from lib.search_utils import DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP, DEFAULT_SEMANTIC_CHUNK_SIZE
+from lib.search_utils import DEFAULT_CHUNK_SIZE, DEFAULT_CHUNK_OVERLAP, DEFAULT_SEMANTIC_CHUNK_SIZE, DEFAULT_SEARCH_LIMIT
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -45,6 +46,10 @@ def main():
 
     subparsers.add_parser("embed_chunks", help="Embed movies utilizing semantic chunking")
 
+    search_chunked_parser = subparsers.add_parser("search_chunked", help="Semantic search using chunked embeddings")
+    search_chunked_parser.add_argument("query", type=str, help="Search query")
+    search_chunked_parser.add_argument("--limit", type=int, default=DEFAULT_SEARCH_LIMIT, help="Number of results to return")
+
     args = parser.parse_args()
 
     match args.command:
@@ -67,6 +72,14 @@ def main():
             semantic_chunk_text(args.text, args.max_chunk_size, args.overlap)
         case "embed_chunks":
             embed_chunks_command()
+        case "search_chunked":
+            print(f"Searching for: {args.query}")
+            result = search_chunked_command(args.query, args.limit)
+            print(f"Query: {result['query']}")
+            print("Results:")
+            for i, res in enumerate(result['results'], 1):
+                print(f"\n{i}. {res['title']} (score: {res['score']:.4f})")
+                print(f"    {res['document']}...")
         case _:
             parser.print_help()
 
