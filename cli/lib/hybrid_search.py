@@ -1,8 +1,11 @@
 import os
+from typing import Optional
 
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
 from .search_utils import load_movies, DEFAULT_ALPHA, DEFAULT_SEARCH_LIMIT, format_search_result, DEFAULT_RRF_K
+from .query_enhancement import enhance_query
+
 
 
 class HybridSearch:
@@ -176,16 +179,22 @@ def reciprocal_rank_fusion(bm25_results: list[dict], semantic_results: list[dict
 
     return sorted(rrf_results, key=lambda x: x["score"], reverse=True)
 
-def rrf_search_command(query: str, k: int = DEFAULT_RRF_K, limit: int = DEFAULT_SEARCH_LIMIT):
+def rrf_search_command(query: str, k: int = DEFAULT_RRF_K, enhance: Optional[str] = None, limit: int = DEFAULT_SEARCH_LIMIT):
     movies = load_movies()
     searcher = HybridSearch(movies)
 
     original_query = query
+    enhanced_query = None
+    if enhance:
+        enhanced_query = enhance_query(query, method=enhance)
+        query = enhanced_query
 
     results = searcher.rrf_search(query, k, limit)
     
     return {
         "original_query": original_query,
+        "enhanced_query": enhanced_query,
+        "enhance_method": enhance,
         "query": query,
         "k": k,
         "results": results,
