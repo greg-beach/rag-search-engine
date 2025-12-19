@@ -166,19 +166,24 @@ def reciprocal_rank_fusion(bm25_results: list[dict], semantic_results: list[dict
             rrf_scores[doc_id]["semantic_rank"] = rank
             rrf_scores[doc_id]["rrf_score"] += rrf_score(rank, k)
 
+    sorted_items = sorted(
+        rrf_scores.items(), key=lambda x: x[1]["rrf_score"], reverse=True
+    )
+
     rrf_results = []
-    for doc_id, data in rrf_scores.items():
+    for doc_id, data in sorted_items:
         result = format_search_result(
             doc_id=doc_id,
             title=data["title"],
             document=data["document"],
             score=data["rrf_score"],
+            rrf_score=data["rrf_score"],
             bm25_rank=data["bm25_rank"],
             semantic_rank=data["semantic_rank"],
         )
         rrf_results.append(result)
 
-    return sorted(rrf_results, key=lambda x: x["score"], reverse=True)
+    return rrf_results
 
 def rrf_search_command(query: str, k: int = DEFAULT_RRF_K, enhance: Optional[str] = None, rerank_method: Optional[str] = None, limit: int = DEFAULT_SEARCH_LIMIT):
     movies = load_movies()
