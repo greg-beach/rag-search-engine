@@ -199,8 +199,12 @@ def rrf_search_command(query: str, k: int = DEFAULT_RRF_K, enhance: Optional[str
     results = searcher.rrf_search(query, k, search_limit)
     
     reranked = False
+    # initial_results = []
+    # for doc in results:
+    #     initial_results.append(doc['title'])
+    # print(f"Initial results: {initial_results}")
     if rerank_method:
-        results = rerank(query, results, method=rerank_method)
+        results = rerank(query, results, method=rerank_method, limit=limit)
         reranked = True
 
     return {

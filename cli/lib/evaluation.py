@@ -16,11 +16,14 @@ def precision_at_k(retrieved_docs: list[str], relevant_docs: set[str], k: int = 
 
 def recall_at_k(retrieved_docs: list[str], relevant_docs: set[str], k: int = 5) -> float:
     top_k = retrieved_docs[:k]
-    retrieved_count = 0
+    relevant_count = 0
     for doc in top_k:
-        if doc in retrieved_docs:
-            retrieved_count += 1
-    return retrieved_count / len(relevant_docs)
+        if doc in relevant_docs:
+            relevant_count += 1
+    return relevant_count / len(relevant_docs)
+
+def f1_at_k(precision: float, recall: float) -> float:
+    return 2 * (precision * recall) / (precision + recall)
 
 def evaluate_command(limit: int = 5) -> dict:
     movies = load_movies()
@@ -45,10 +48,12 @@ def evaluate_command(limit: int = 5) -> dict:
 
         precision = precision_at_k(retrieved_docs, relevant_docs, limit)
         recall = recall_at_k(retrieved_docs, relevant_docs, limit)
+        f1 = f1_at_k(precision, recall)
 
         results_by_query[query] = {
             "precision": precision,
             "recall": recall,
+            "f1": f1,
             "retrieved": retrieved_docs[:limit],
             "relevant": list(relevant_docs),
         }

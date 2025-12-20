@@ -95,7 +95,7 @@ def cross_encoder_rerank(query: str, documents: list[dict], limit: int = DEFAULT
     documents.sort(key=lambda x: x['crossencoder_score'], reverse=True)
     return documents[:limit]
 
-def rerank(query: str, documents: list[dict], method: str = "batch", limit: int = 5) -> list[dict]:
+def rerank(query: str, documents: list[dict], method: str = "batch", limit: int = DEFAULT_SEARCH_LIMIT) -> list[dict]:
     if method == "individual":
         return llm_rerank_individual(query, documents, limit)
     if method == "batch":
